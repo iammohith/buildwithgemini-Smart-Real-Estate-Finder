@@ -2,15 +2,19 @@
 
 > *This project was developed during the Build with Gemini session held in Hyderabad on 13 October 2026.*
 
-A conversational real estate advisory agent built with Google's **Agent Development Kit (ADK)** and deployed on **Google Cloud Agent Platform**. 
+A conversational real estate advisory agent built with Google's **Agent Development Kit (ADK)**, powered by Google's flagship **Gemini 3.8 Flash** (`gemini-3.8-flash`) model, and deployed on **Google Cloud Agent Platform**. 
 
-Smart Real Estate Finder helps home seekers discover, evaluate, visualize, and tour properties from a curated catalog. It combines cross-session memory, safe Python sandbox financial calculations, multimodal image and video generation, Google Maps location intelligence, and rich agent-driven UI (A2UI) cards.
+Smart Real Estate Finder helps home seekers discover, evaluate, visualize, and tour properties from a curated catalog. It combines **Gemini 3.8 Flash** for intelligent conversational reasoning and tool calling with cross-session memory, safe Python sandbox financial calculations, multimodal image and video generation, Google Maps location intelligence, and rich agent-driven UI (A2UI) cards.
 
 ---
 
 ## 🌟 Key Capabilities & Features
 
 Based directly on the implementation in `app/agent.py` and `agents-cli-manifest.yaml`, the agent provides the following capabilities:
+
+### 0. Intelligent Agent Foundation (Gemini 3.8 Flash)
+- **Primary Reasoning Model (`gemini-3.8-flash`)**: Drives the multi-turn conversational advisory loop, tool selection, parameter extraction, and context-aware responses with state-of-the-art speed and reasoning fidelity.
+- **Robust Tool Orchestration**: Intelligently coordinates between 14 domain tools across Firestore, Maps, Sandbox Code Execution, and Multimodal GenAI models.
 
 ### 1. Curated Property Search & Management (Cloud Firestore)
 - **Catalog Search (`search_properties`)**: Queries Firestore for properties filtered by city, price range, bedrooms, bathrooms, property type (Single Family, Condo, Townhouse), and pet-friendliness.

@@ -527,8 +527,9 @@ function el(tag, cls, text) {
 }
 
 function bubble(who) {
-  if (welcomeBanner && welcomeBanner.parentNode) {
-    welcomeBanner.remove();
+  const currentBanner = document.getElementById("welcome-banner");
+  if (currentBanner && currentBanner.parentNode) {
+    currentBanner.remove();
   }
   const row = el("div", "msg-row " + who);
   if (who === "agent") {
@@ -747,6 +748,9 @@ function renderReply(b, parts) {
 
 async function sendQuery(text) {
   if (!text) return;
+  const sendBtn = document.getElementById("send-btn");
+  if (sendBtn) sendBtn.disabled = true;
+  input.disabled = true;
   bubble("user").textContent = text;
   input.value = "";
   const b = showTypingIndicator();
@@ -763,6 +767,10 @@ async function sendQuery(text) {
     renderReply(b, data.parts || []);
   } catch (e) {
     b.textContent = "Error: " + e.message;
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+    input.disabled = false;
+    input.focus();
   }
 }
 
@@ -771,6 +779,14 @@ form.addEventListener("submit", (ev) => {
   ev.preventDefault();
   const text = input.value.trim();
   sendQuery(text);
+});
+
+// Explicit enter key listener on input
+input.addEventListener("keydown", (ev) => {
+  if (ev.key === "Enter" && !ev.shiftKey) {
+    ev.preventDefault();
+    form.dispatchEvent(new Event("submit"));
+  }
 });
 
 // Clickable example prompt chips
@@ -797,7 +813,10 @@ resetBtn.addEventListener("click", () => {
       </div>
     </div>
   `;
+  input.focus();
 });
+
+console.log("Smart Real Estate Finder chat UI initialized with Gemini 3.8 Flash backend");
 </script>
 </body>
 </html>
