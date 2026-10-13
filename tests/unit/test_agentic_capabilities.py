@@ -113,3 +113,25 @@ def test_frontend_chat_request_validation():
     assert res_oversized.status_code == 400
     data_oversized = res_oversized.json()
     assert "maximum allowed length" in data_oversized.get("error", "")
+
+
+def test_frontend_cors_and_reset():
+    """Verify CORS preflight handling and /reset endpoint."""
+    client = TestClient(frontend_app)
+
+    # CORS OPTIONS preflight
+    res_cors = client.options(
+        "/chat",
+        headers={
+            "Origin": "https://remote-browser-vm1-apoaopdc2q-em.a.run.app",
+            "Access-Control-Request-Method": "POST",
+        },
+    )
+    assert res_cors.status_code == 200
+    assert "access-control-allow-origin" in res_cors.headers
+
+    # Session reset endpoint
+    res_reset = client.post("/reset", json={"user_id": "test-session-123"})
+    assert res_reset.status_code == 200
+    assert res_reset.json().get("status") == "ok"
+

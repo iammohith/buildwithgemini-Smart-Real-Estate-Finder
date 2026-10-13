@@ -5,7 +5,7 @@
 [![Google ADK 2.6+](https://img.shields.io/badge/Google%20ADK-2.6+-4285F4.svg)](https://cloud.google.com/vertex-ai)
 [![Model Gemini 3.8 Flash](https://img.shields.io/badge/Model-Gemini%203.8%20Flash-orange.svg)](https://deepmind.google/technologies/gemini/)
 [![License Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](./LICENSE)
-[![Tests 25/25 Passing](https://img.shields.io/badge/Tests-25%2F25%20Passing-brightgreen.svg)](./tests)
+[![Tests 26/26 Passing](https://img.shields.io/badge/Tests-26%2F26%20Passing-brightgreen.svg)](./tests)
 [![Google Cloud Run Deployed](https://img.shields.io/badge/Cloud%20Run-Deployed-success.svg)](https://cloud.google.com/run)
 
 ---
@@ -16,7 +16,7 @@
 
 Smart Real Estate Finder unifies these capabilities into a single **Agentic PropTech Platform** built with Google's **Agent Development Kit (ADK)** and orchestrated by **Gemini 3.8 Flash** (`gemini-3.8-flash`). The agent maintains persistent, cross-session user memory via **Vertex AI Memory Bank**, executes complex mathematical financial models inside an isolated **Agent Engine Sandbox Code Executor**, synthesizes environmental health and Google Maps geospatial intelligence, generates multimodal architectural concept renders (`gemini-3.1-flash-lite-image`) and drone flythrough videos (`gemini-omni-flash-preview`), and projects rich, declarative cards using the **Agent-to-User Interface (A2UI v0.8)** specification.
 
-Deployed on **Google Cloud Agent Platform** with an authenticated **FastAPI A2A (Agent-to-Agent) Proxy** on **Cloud Run**, this repository demonstrates production-ready autonomous agent engineering with 100% test coverage (25/25 passing tests), strict security sandboxing, zero credential leakage, and explicit failure-mode engineering.
+Deployed on **Google Cloud Agent Platform** with an authenticated **FastAPI A2A (Agent-to-Agent) Proxy** on **Cloud Run**, this repository demonstrates production-ready autonomous agent engineering with 100% test coverage (26/26 passing tests), strict security sandboxing, zero credential leakage, and explicit failure-mode engineering.
 
 ---
 
@@ -274,7 +274,7 @@ A senior systems review prioritizes rationale over syntax. Below is the decision
    uv run python seed_firestore.py
    ```
 
-5. **Run the Test Suite (Verify 25/25 Tests Pass):**
+5. **Run the Test Suite (Verify 26/26 Tests Pass):**
    ```bash
    uv run pytest tests/ -v
    ```

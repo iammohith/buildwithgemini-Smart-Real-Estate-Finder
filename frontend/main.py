@@ -94,7 +94,17 @@ def _auth_headers() -> dict[str, str]:
     }
 
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.exception_handler(Exception)
@@ -106,7 +116,8 @@ async def _json_errors(request: Request, exc: Exception):
     return JSONResponse(
         status_code=200,
         content={
-            "parts": [{"kind": "text", "text": f"Error: {type(exc).__name__}: {exc}"}]
+            "parts": [{"kind": "text", "text": f"Error: {type(exc).__name__}: {exc}"}],
+            "metadata": {"status": "error", "error": str(exc)},
         },
     )
 
@@ -114,6 +125,19 @@ async def _json_errors(request: Request, exc: Exception):
 _STARTUP_TIME = time.time()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("smart_real_estate_proxy")
+
+
+@app.post("/reset")
+async def reset_session(req: Request):
+    """Explicitly reset a conversation context for a given user or session ID."""
+    try:
+        body = await req.json()
+        user_id = (body.get("user_id") or "web-user").strip()
+    except Exception:
+        user_id = "web-user"
+    if user_id in _contexts:
+        del _contexts[user_id]
+    return JSONResponse({"status": "ok", "message": "Context reset successfully"})
 
 
 @app.get("/health")
@@ -242,39 +266,52 @@ async def chat(req: Request):
         )
         a2a_client = factory.create(card)
 
-        msg = Message(
-            message_id=str(uuid.uuid4()),
-            role=Role.user,
-            parts=[Part(root=TextPart(text=message))],
-            context_id=_contexts.get(user_id),
-        )
+        async def _send_and_collect(ctx_id: str | None):
+            art_parts: list[dict] = []
+            stat_parts: list[dict] = []
+            lt = None
+            m = Message(
+                message_id=str(uuid.uuid4()),
+                role=Role.user,
+                parts=[Part(root=TextPart(text=message))],
+                context_id=ctx_id,
+            )
+            async for event in a2a_client.send_message(m):
+                if not isinstance(event, tuple):
+                    continue
+                t, u = event
+                if t is not None:
+                    lt = t
+                    if getattr(t, "context_id", None):
+                        _contexts[user_id] = t.context_id
+                if isinstance(u, TaskArtifactUpdateEvent):
+                    art_parts.extend(_extract_parts(u.artifact.parts))
+                elif getattr(u, "status", None) and getattr(u.status, "message", None):
+                    msg_obj = u.status.message
+                    if getattr(msg_obj, "parts", None):
+                        stat_parts.extend(_extract_parts(msg_obj.parts))
+            return art_parts, stat_parts, lt
 
-        last_task = None
-        artifact_parts: list[dict] = []
-        status_parts: list[dict] = []
-        async for event in a2a_client.send_message(msg):
-            if not isinstance(event, tuple):
-                continue
-            task, update = event
-            if task is not None:
-                last_task = task
-                if getattr(task, "context_id", None):
-                    _contexts[user_id] = task.context_id
-            if isinstance(update, TaskArtifactUpdateEvent):
-                artifact_parts.extend(_extract_parts(update.artifact.parts))
-            elif getattr(update, "status", None) and getattr(update.status, "message", None):
-                msg_obj = update.status.message
-                if getattr(msg_obj, "parts", None):
-                    status_parts = _extract_parts(msg_obj.parts)
+        try:
+            artifact_parts, status_parts, last_task = await _send_and_collect(_contexts.get(user_id))
+        except Exception as e:
+            logger.warning(
+                f"Error sending message with context {_contexts.get(user_id)}: {e}. Retrying with fresh context."
+            )
+            if user_id in _contexts:
+                del _contexts[user_id]
+            artifact_parts, status_parts, last_task = await _send_and_collect(None)
 
-        # Prefer artifact parts (A2UI surfaces or produced artifacts) if present;
-        # otherwise use the latest status message parts
+        # Collect text parts first, followed by A2UI card parts, avoiding duplicates
+        if status_parts:
+            parts.extend(status_parts)
         if artifact_parts:
-            parts = artifact_parts
-        elif status_parts:
-            parts = status_parts
-        elif last_task is not None:
-            # Non-streaming fallback: pull parts from the final task's artifacts or history.
+            for ap in artifact_parts:
+                if ap not in parts:
+                    parts.append(ap)
+
+        # Non-streaming fallback: pull parts from the final task's artifacts or history if still empty
+        if not parts and last_task is not None:
             for artifact in getattr(last_task, "artifacts", None) or []:
                 parts.extend(_extract_parts(artifact.parts))
             if not parts:

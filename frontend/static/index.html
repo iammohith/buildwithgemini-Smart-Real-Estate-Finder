@@ -621,13 +621,31 @@ function bubble(who) {
   return b;
 }
 
+let typingTimerInterval = null;
+
 function showTypingIndicator() {
   const b = bubble("agent");
   const indicator = el("div", "typing-indicator");
   indicator.appendChild(el("span"));
   indicator.appendChild(el("span"));
   indicator.appendChild(el("span"));
+
+  const timerSpan = el("span", "timer-text");
+  timerSpan.style.marginLeft = "8px";
+  timerSpan.style.fontSize = "0.78rem";
+  timerSpan.style.color = "var(--text-muted)";
+  timerSpan.textContent = "Reasoning...";
+  indicator.appendChild(timerSpan);
+
   b.appendChild(indicator);
+
+  let seconds = 0;
+  if (typingTimerInterval) clearInterval(typingTimerInterval);
+  typingTimerInterval = setInterval(() => {
+    seconds++;
+    timerSpan.textContent = `Reasoning... (${seconds}s)`;
+  }, 1000);
+
   return b;
 }
 
@@ -819,14 +837,54 @@ function renderReply(b, parts, metadata) {
     b.appendChild(textNode);
   }
 
+  let hasContent = false;
+  if (textStr) {
+    const textNode = el("div", null);
+    textNode.innerHTML = formatMarkdown(textStr);
+    b.appendChild(textNode);
+    hasContent = true;
+  }
+
   if (a2ui.length) {
     b.classList.add("rich");
     if (!renderSurface(a2ui, b)) {
-      b.appendChild(el("div", null, flattenText(a2ui) || "(no card content)"));
+      const fallback = flattenText(a2ui);
+      if (fallback) {
+        b.appendChild(el("div", null, fallback));
+        hasContent = true;
+      }
+    } else {
+      hasContent = true;
     }
   }
-  if (!b.childNodes.length) b.textContent = "(no response)";
+
+  if (!hasContent) {
+    b.appendChild(el("div", null, "(The agent completed the task but returned no displayable message. Try asking another question.)"));
+  }
   log.scrollTop = log.scrollHeight;
+}
+
+function getSessionId() {
+  let sid = sessionStorage.getItem("sre_session_id");
+  if (!sid) {
+    sid = "session_" + Math.random().toString(36).slice(2, 10);
+    sessionStorage.setItem("sre_session_id", sid);
+  }
+  return sid;
+}
+
+function resetSessionId() {
+  const oldSid = sessionStorage.getItem("sre_session_id");
+  if (oldSid) {
+    fetch("/reset", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: oldSid })
+    }).catch(() => {});
+  }
+  const newSid = "session_" + Math.random().toString(36).slice(2, 10);
+  sessionStorage.setItem("sre_session_id", newSid);
+  return newSid;
 }
 
 async function sendQuery(text) {
@@ -847,14 +905,18 @@ async function sendQuery(text) {
   const b = showTypingIndicator();
 
   currentAbortController = new AbortController();
+  const timeoutId = setTimeout(() => {
+    if (currentAbortController) currentAbortController.abort();
+  }, 120000);
 
   try {
     const res = await fetch("/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text }),
+      body: JSON.stringify({ message: text, user_id: getSessionId() }),
       signal: currentAbortController.signal
     });
+    clearTimeout(timeoutId);
     const raw = await res.text();
     let data;
     try { data = JSON.parse(raw); }
@@ -864,8 +926,9 @@ async function sendQuery(text) {
     }
     renderReply(b, data.parts || [], data.metadata);
   } catch (e) {
+    clearTimeout(timeoutId);
     if (e.name === "AbortError") {
-      b.textContent = "Task was cancelled by user.";
+      b.textContent = "Request timed out or was cancelled by user.";
     } else {
       b.innerHTML = `<div><strong>Error:</strong> ${e.message}</div>`;
       const retryBtn = el("button", "btn-retry");
@@ -878,6 +941,10 @@ async function sendQuery(text) {
       b.appendChild(retryBtn);
     }
   } finally {
+    if (typingTimerInterval) {
+      clearInterval(typingTimerInterval);
+      typingTimerInterval = null;
+    }
     currentAbortController = null;
     if (sendBtn) {
       sendBtn.disabled = false;
@@ -928,6 +995,10 @@ document.querySelectorAll(".chip").forEach(chip => {
 
 // Reset conversation
 resetBtn.addEventListener("click", () => {
+  if (currentAbortController) {
+    currentAbortController.abort();
+  }
+  resetSessionId();
   log.innerHTML = `
     <div id="welcome-banner" class="welcome-banner">
       <div class="welcome-icon">🏡</div>
