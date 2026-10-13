@@ -4,7 +4,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![Google ADK 2.6+](https://img.shields.io/badge/Google%20ADK-2.6+-4285F4.svg)](https://cloud.google.com/vertex-ai)
 [![Model Gemini 3.8 Flash](https://img.shields.io/badge/Model-Gemini%203.8%20Flash-orange.svg)](https://deepmind.google/technologies/gemini/)
-[![License Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](./LICENSE)
+[![License MIT](https://img.shields.io/badge/License-MIT%20-green.svg)](./LICENSE)
 [![Tests 27/27 Passing](https://img.shields.io/badge/Tests-27%2F27%20Passing-brightgreen.svg)](./tests)
 [![Google Cloud Run Deployed](https://img.shields.io/badge/Cloud%20Run-Deployed-success.svg)](https://cloud.google.com/run)
 
@@ -388,4 +388,4 @@ Contributions are welcome! Please follow this workflow to maintain code quality:
 
 ## 11. License
 
-This project is licensed under the Apache License, Version 2.0. See the [LICENSE](./LICENSE) file for complete details.
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for complete details.
