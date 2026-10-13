@@ -10,6 +10,22 @@
 
 ---
 
+## 🎬 Live Demo & Production Cloud Run Deployment
+
+- 🌐 **Live Cloud Run Application:** [https://smart-real-estate-finder-frontend-apoaopdc2q-ue.a.run.app](https://smart-real-estate-finder-frontend-apoaopdc2q-ue.a.run.app)
+- 🚀 **Direct Regional Service URL:** [https://smart-real-estate-finder-frontend-257485218858.us-east1.run.app](https://smart-real-estate-finder-frontend-257485218858.us-east1.run.app)
+- 📹 **High-Definition Demo Video (MP4):** [docs/demo/smart_real_estate_finder_demo.mp4](./docs/demo/smart_real_estate_finder_demo.mp4)
+- 🎥 **WebM Recording:** [docs/demo/smart_real_estate_finder_demo.webm](./docs/demo/smart_real_estate_finder_demo.webm)
+- 🧠 **Vertex AI Reasoning Engine Resource:** `projects/257485218858/locations/us-east1/reasoningEngines/4938809419388420096`
+
+### Animated Walkthrough Preview
+
+![Smart Real Estate Finder Autonomous Agent Demo](./docs/demo/demo.gif)
+
+> *The demo captures end-to-end multi-turn interaction live against the GCP deployment: searching multi-bedroom catalog listings in Austin, rendering rich A2UI cards, executing verified mortgage financial calculations, and retrieving local neighborhood schools and amenities.*
+
+---
+
 ## 1. Overview
 
 **Smart Real Estate Finder** is an autonomous, end-to-end real estate advisory system engineered to resolve the fragmentation inherent in modern property search. Traditional real estate portals force buyers to navigate disconnected tools: searching MLS catalogs in one tab, computing complex mortgage amortizations in another, researching neighborhood air quality and schools on third-party maps, and hiring interior staging designers to visualize renovations.
@@ -321,14 +337,19 @@ A senior systems review prioritizes rationale over syntax. Below is the decision
 │   └── app_utils/                          # Runtime utilities
 │       ├── __init__.py                     # Module initialization
 │       └── reasoning_engine_adapter.py     # Vertex AI Reasoning Engine streaming adapter
+├── docs/                                   # Documentation and recorded demo media
+│   └── demo/                               # Demo walkthrough assets
+│       ├── demo.gif                        # Animated visual preview for GitHub
+│       ├── smart_real_estate_finder_demo.mp4 # High-definition MP4 demo recording
+│       └── smart_real_estate_finder_demo.webm # Playwright browser capture
 ├── frontend/                               # Cloud Run production frontend service
 │   ├── Dockerfile                          # Distroless container image definition
-│   ├── main.py                             # FastAPI A2A proxy server with cache-busting headers
+│   ├── main.py                             # FastAPI A2A proxy with CORS, /reset & context fallback
 │   ├── requirements.txt                    # Minimal runtime dependencies for Cloud Run
 │   └── static/                             # Frontend client assets
-│       ├── index.html                      # Single-page chat interface & native A2UI card renderer
+│       ├── index.html                      # Single-page chat interface, session manager & A2UI renderer
 │       └── style.css                       # Real estate styled design system & animations
-└── tests/                                  # Comprehensive automated test suite (20 tests)
+└── tests/                                  # Comprehensive automated test suite (26/26 tests passing)
     ├── eval/                               # Quality evaluation scripts
     │   └── response_quality.py             # LLM-as-a-judge response grading using Gemini 3.8 Flash
     ├── integration/                        # Integration test cases
@@ -336,7 +357,8 @@ A senior systems review prioritizes rationale over syntax. Below is the decision
     │   └── test_server_e2e.py              # End-to-end A2A server protocol & agent card tests
     └── unit/                               # Unit test cases
         ├── test_dummy.py                   # Baseline environment verification test
-        └── test_tools.py                   # 14 unit tests covering all tools, math & A2UI parsing
+        ├── test_tools.py                   # 14 unit tests covering all tools, math & A2UI parsing
+        └── test_agentic_capabilities.py    # 6 unit tests for CORS, reset, input bounds & cognitive ReAct
 ```
 
 ---

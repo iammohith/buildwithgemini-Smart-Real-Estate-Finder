@@ -222,3 +222,7 @@ application_default_credentials.json
 *-sa-key.json
 service-account*.json
 *.webm
+
+# Preserve Demo Assets in docs/demo
+!docs/demo/*
+
