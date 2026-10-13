@@ -24,28 +24,46 @@ Run:
   python main.py                 # -> http://localhost:8080
 """
 
+import datetime
+import logging
 import os
+import time
 import uuid
 
 import google.auth
 import google.auth.transport.requests
 import httpx
-from a2a.client import ClientConfig, ClientFactory
-from a2a.types import (
-    AgentCard,
-    FilePart,
-    Message,
-    Part,
-    Role,
-    TaskArtifactUpdateEvent,
-    TextPart,
-    TransportProtocol,
-)
+
+try:
+    from a2a.client import ClientConfig, ClientFactory
+except ImportError:
+    ClientConfig, ClientFactory = None, None
+
+try:
+    from a2a.types import (
+        AgentCard,
+        FilePart,
+        Message,
+        Part,
+        Role,
+        TaskArtifactUpdateEvent,
+        TextPart,
+        TransportProtocol,
+    )
+except ImportError:
+    from a2a.types import AgentCard, Message, Part, Role, TaskArtifactUpdateEvent
+    FilePart = None
+    TextPart = None
+    TransportProtocol = None
+
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-RESOURCE = os.environ["AGENT_ENGINE_RESOURCE_NAME"]
+RESOURCE = os.environ.get(
+    "AGENT_ENGINE_RESOURCE_NAME",
+    "projects/257485218858/locations/us-east1/reasoningEngines/4938809419388420096",
+)
 # The agent's app directory (matches agent_directory in agents-cli-manifest.yaml).
 AGENT_DIRECTORY = os.environ.get("AGENT_DIRECTORY", "app")
 # Location is embedded in the resource name: projects/<p>/locations/<loc>/reasoningEngines/<id>.
@@ -89,6 +107,29 @@ async def _json_errors(request: Request, exc: Exception):
         status_code=200,
         content={
             "parts": [{"kind": "text", "text": f"Error: {type(exc).__name__}: {exc}"}]
+        },
+    )
+
+
+_STARTUP_TIME = time.time()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("smart_real_estate_proxy")
+
+
+@app.get("/health")
+async def health():
+    """Liveness and readiness check for Cloud Run and monitoring systems."""
+    uptime_seconds = int(time.time() - _STARTUP_TIME)
+    return JSONResponse(
+        status_code=200,
+        content={
+            "status": "healthy",
+            "model": "gemini-3.8-flash",
+            "uptime_seconds": uptime_seconds,
+            "agent_engine_resource": RESOURCE,
+            "agent_directory": AGENT_DIRECTORY,
+            "active_contexts": len(_contexts),
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         },
     )
 
@@ -156,9 +197,36 @@ def _extract_parts(parts: list) -> list[dict]:
 
 @app.post("/chat")
 async def chat(req: Request):
-    body = await req.json()
-    message = body.get("message", "")
-    user_id = body.get("user_id") or "web-user"
+    start_ts = time.time()
+    task_id = f"task_{uuid.uuid4().hex[:8]}"
+
+    try:
+        body = await req.json()
+    except Exception:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Invalid JSON body", "task_id": task_id, "parts": []},
+        )
+
+    message = (body.get("message") or "").strip()
+    user_id = (body.get("user_id") or "web-user").strip()
+
+    if not message:
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Message cannot be empty", "task_id": task_id, "parts": []},
+        )
+
+    if len(message) > 4000:
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "Message exceeds maximum allowed length of 4,000 characters.",
+                "task_id": task_id,
+                "parts": [],
+            },
+        )
+
     parts: list[dict] = []
 
     async with httpx.AsyncClient(headers=_auth_headers(), timeout=120) as client:
@@ -220,13 +288,28 @@ async def chat(req: Request):
         # The turn produced no text or UI (e.g. the agent only ran tools, or a
         # tool stalled). Be honest rather than silent.
         parts = [{"kind": "text", "text": "(The agent didn't return a reply.)"}]
-    return JSONResponse({"parts": parts})
+
+    execution_time_ms = int((time.time() - start_ts) * 1000)
+    return JSONResponse(
+        {
+            "parts": parts,
+            "metadata": {
+                "task_id": task_id,
+                "execution_time_ms": execution_time_ms,
+                "status": "complete",
+                "model": "gemini-3.8-flash",
+            },
+        }
+    )
+
+
+STATIC_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
 
 
 @app.get("/")
 async def root():
     return FileResponse(
-        "static/index.html",
+        os.path.join(STATIC_DIR, "index.html"),
         headers={
             "Cache-Control": "no-cache, no-store, must-revalidate, max-age=0",
             "Pragma": "no-cache",
@@ -236,7 +319,8 @@ async def root():
 
 
 # Serve the chat UI (keep this mount last so /chat and / win).
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+if os.path.exists(STATIC_DIR):
+    app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 
 
 if __name__ == "__main__":

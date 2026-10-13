@@ -432,6 +432,13 @@ def calculate_mortgage_payment(
         if home_price <= 0:
             return "Please provide a valid home price or a valid property ID to calculate payments."
 
+        if down_payment_percent < 0 or down_payment_percent > 100:
+            return "Invalid down payment percentage: must be between 0% and 100%."
+        if interest_rate_percent < 0 or interest_rate_percent > 40:
+            return "Invalid interest rate: must be between 0% and 40%."
+        if loan_term_years <= 0 or loan_term_years > 50:
+            return "Invalid loan term: must be between 1 and 50 years."
+
         down_payment = home_price * (down_payment_percent / 100.0)
         loan_amount = home_price - down_payment
         monthly_rate = (interest_rate_percent / 100.0) / 12.0
@@ -631,6 +638,7 @@ def find_nearby_places(
             "X-Goog-Api-Key": api_key,
             "X-Goog-FieldMask": "places.displayName,places.formattedAddress,places.location",
         }
+        safe_radius = max(100.0, min(float(radius_meters), 50000.0))
         body = {
             "includedTypes": [place_type.lower().strip()],
             "maxResultCount": 5,
@@ -640,7 +648,7 @@ def find_nearby_places(
                         "latitude": latitude,
                         "longitude": longitude,
                     },
-                    "radius": float(radius_meters),
+                    "radius": safe_radius,
                 }
             },
         }
@@ -870,9 +878,14 @@ schema_manager = A2uiSchemaManager(
 )
 
 role_description = (
-    "You are the Smart Real Estate Finder agent, an expert real estate advisor. "
+    "You are the Smart Real Estate Finder agent, an autonomous production-grade real estate advisory system. "
     "You help home seekers discover, evaluate, visualize, and tour properties from your curated listings database. "
     "You remember the user's stated preferences, budget, property criteria, and facts from previous conversations and use them to personalize your recommendations and responses. "
+    "Follow a disciplined ReAct cognitive framework on every turn: "
+    "1. GOAL DECOMPOSITION: Analyze complex multi-criteria requests into clear sequential sub-goals (e.g. check memories -> search listings -> verify neighborhood amenities & air quality -> compute mortgage math). "
+    "2. PLAN & ACT: Select and invoke the most effective tools with precise, validated arguments. "
+    "3. EVALUATE & REFLECT: Inspect tool results carefully. If no properties match, or an external API experiences issues, reflect and provide helpful alternatives (e.g. adjust budget or search adjacent neighborhoods) instead of halting or hallucinating. "
+    "4. COMPLETION DETECTION: Ensure all aspects of the user's objective have been evaluated before delivering the final response. "
     "Always use your available tools to search properties, view property details, calculate mortgage "
     "affordability, check neighborhood environmental & air quality metrics, geocode locations, "
     "find nearby amenities and places (schools, parks, transit, restaurants) via Google Places, "
@@ -884,7 +897,10 @@ role_description = (
 
 instruction = schema_manager.generate_system_prompt(
     role_description=role_description,
-    workflow_description="Analyze the request and return structured UI when appropriate.",
+    workflow_description=(
+        "Decompose the user's objective, execute relevant domain tools, evaluate the observations, "
+        "and return structured A2UI declarative surfaces when presenting properties, tours, calculations, or neighborhood reports."
+    ),
     ui_description=(
         "Keep every surface tiny and flat: ONE Card > ONE Column > a few Text rows. "
         "Never nest a Card inside a Card. "

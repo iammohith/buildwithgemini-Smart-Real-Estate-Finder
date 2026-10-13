@@ -104,6 +104,12 @@
     padding: 0.3rem 0.65rem;
     border-radius: 20px;
     border: 1px solid var(--accent-border);
+    transition: all 0.2s ease;
+  }
+  .status-badge.working {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
   }
   .status-dot {
     width: 7px;
@@ -111,6 +117,70 @@
     border-radius: 50%;
     background: #10b981;
     box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    transition: all 0.2s ease;
+  }
+  .status-badge.working .status-dot {
+    background: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.25);
+    animation: statusPulse 1.2s infinite ease-in-out;
+  }
+  @keyframes statusPulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.45; transform: scale(1.25); }
+  }
+  .agent-meta-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    margin-bottom: 0.65rem;
+    width: fit-content;
+  }
+  .agent-meta-badge .meta-icon {
+    color: var(--accent);
+    font-size: 0.85rem;
+  }
+  .btn-abort {
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    color: #dc2626;
+    border-radius: 10px;
+    padding: 0 0.85rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: none;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    height: 42px;
+  }
+  .btn-abort:hover {
+    background: #fecaca;
+  }
+  .btn-retry {
+    margin-top: 0.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--accent);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-retry:hover {
+    background: var(--accent-dark);
   }
   .btn-reset {
     background: transparent;
@@ -465,7 +535,7 @@
     </div>
   </div>
   <div class="header-actions">
-    <span class="status-badge"><span class="status-dot"></span> Online</span>
+    <span class="status-badge" id="agent-status-badge"><span class="status-dot" id="status-dot"></span> <span id="status-text">Ready · Gemini 3.8 Flash</span></span>
     <button type="button" class="btn-reset" id="reset-btn" title="Start new session">
       <span class="material-symbols-outlined">restart_alt</span>
       <span class="btn-text">Reset</span>
@@ -506,6 +576,10 @@
 
   <form id="form">
     <input id="input" placeholder="Search homes, calculate mortgage, explore neighborhoods…" autocomplete="off" autofocus>
+    <button type="button" id="abort-btn" class="btn-abort" title="Cancel running task">
+      <span class="material-symbols-outlined">stop_circle</span>
+      <span>Cancel</span>
+    </button>
     <button type="submit" id="send-btn" title="Send message">
       <span class="material-symbols-outlined">arrow_upward</span>
     </button>
@@ -715,8 +789,17 @@ function flattenText(messages) {
   return out.join("\n").trim();
 }
 
-function renderReply(b, parts) {
+let currentAbortController = null;
+
+function renderReply(b, parts, metadata) {
   b.textContent = "";
+  if (metadata && metadata.task_id) {
+    const metaNode = el("div", "agent-meta-badge");
+    const duration = metadata.execution_time_ms ? `${(metadata.execution_time_ms / 1000).toFixed(2)}s` : "";
+    metaNode.innerHTML = `<span class="meta-icon">⚡</span> ${metadata.model || "Gemini 3.8 Flash"} ${duration ? "· " + duration : ""} · <span style="opacity:0.8">${metadata.task_id}</span>`;
+    b.appendChild(metaNode);
+  }
+
   const texts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
   const a2ui = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
 
@@ -749,29 +832,73 @@ function renderReply(b, parts) {
 async function sendQuery(text) {
   if (!text) return;
   const sendBtn = document.getElementById("send-btn");
-  if (sendBtn) sendBtn.disabled = true;
+  const abortBtn = document.getElementById("abort-btn");
+  const statusBadge = document.getElementById("agent-status-badge");
+  const statusText = document.getElementById("status-text");
+
+  if (sendBtn) sendBtn.style.display = "none";
+  if (abortBtn) abortBtn.style.display = "inline-flex";
+  if (statusBadge) statusBadge.classList.add("working");
+  if (statusText) statusText.textContent = "Reasoning & Executing Tools...";
+
   input.disabled = true;
   bubble("user").textContent = text;
   input.value = "";
   const b = showTypingIndicator();
+
+  currentAbortController = new AbortController();
+
   try {
     const res = await fetch("/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: text })
+      body: JSON.stringify({ message: text }),
+      signal: currentAbortController.signal
     });
     const raw = await res.text();
     let data;
     try { data = JSON.parse(raw); }
     catch { throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${raw.slice(0, 300)}`); }
-    renderReply(b, data.parts || []);
+    if (res.status >= 400 && data.error) {
+      throw new Error(data.error);
+    }
+    renderReply(b, data.parts || [], data.metadata);
   } catch (e) {
-    b.textContent = "Error: " + e.message;
+    if (e.name === "AbortError") {
+      b.textContent = "Task was cancelled by user.";
+    } else {
+      b.innerHTML = `<div><strong>Error:</strong> ${e.message}</div>`;
+      const retryBtn = el("button", "btn-retry");
+      retryBtn.type = "button";
+      retryBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size:0.95rem">refresh</span> Retry';
+      retryBtn.onclick = () => {
+        b.remove();
+        sendQuery(text);
+      };
+      b.appendChild(retryBtn);
+    }
   } finally {
-    if (sendBtn) sendBtn.disabled = false;
+    currentAbortController = null;
+    if (sendBtn) {
+      sendBtn.disabled = false;
+      sendBtn.style.display = "inline-flex";
+    }
+    if (abortBtn) abortBtn.style.display = "none";
+    if (statusBadge) statusBadge.classList.remove("working");
+    if (statusText) statusText.textContent = "Ready · Gemini 3.8 Flash";
     input.disabled = false;
     input.focus();
   }
+}
+
+// Abort button click listener
+const abortBtnEl = document.getElementById("abort-btn");
+if (abortBtnEl) {
+  abortBtnEl.addEventListener("click", () => {
+    if (currentAbortController) {
+      currentAbortController.abort();
+    }
+  });
 }
 
 // Submit via form
