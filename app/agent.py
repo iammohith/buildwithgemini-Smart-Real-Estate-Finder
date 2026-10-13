@@ -269,6 +269,33 @@ def get_property_details(property_id: str) -> str:
         return f"Error retrieving property details for {property_id}: {e}"
 
 
+def get_property_amenities(property_id: str) -> str:
+    """Retrieves the list of amenities, appliances, and special features for a property.
+
+    Args:
+        property_id: The ID of the property (e.g. 'prop-101', 'prop-102').
+
+    Returns:
+        A list of key amenities and features for the property.
+    """
+    try:
+        db = get_firestore_client()
+        doc = db.collection("properties").document(property_id.strip()).get()
+        if not doc.exists:
+            return f"Property with ID '{property_id}' was not found in the database."
+
+        data = doc.to_dict()
+        title = data.get("title", property_id)
+        features = data.get("features", [])
+        if not features:
+            return f"No specific amenities listed for {title} (ID: {property_id})."
+
+        amenity_list = "\n".join(f"- {f}" for f in features)
+        return f"Amenities and Features for {title} (ID: {property_id}):\n{amenity_list}"
+    except Exception as e:
+        return f"Error retrieving amenities for {property_id}: {e}"
+
+
 def add_property_listing(
     title: str,
     price: float,
@@ -894,6 +921,7 @@ root_agent = Agent(
         PreloadMemoryTool(),
         search_properties,
         get_property_details,
+        get_property_amenities,
         calculate_mortgage_payment,
         get_neighborhood_air_quality,
         geocode_address,

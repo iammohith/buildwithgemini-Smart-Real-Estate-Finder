@@ -182,7 +182,8 @@ async def chat(req: Request):
         )
 
         last_task = None
-        got_artifact_update = False
+        artifact_parts: list[dict] = []
+        status_parts: list[dict] = []
         async for event in a2a_client.send_message(msg):
             if not isinstance(event, tuple):
                 continue
@@ -192,17 +193,20 @@ async def chat(req: Request):
                 if getattr(task, "context_id", None):
                     _contexts[user_id] = task.context_id
             if isinstance(update, TaskArtifactUpdateEvent):
-                got_artifact_update = True
-                parts.extend(_extract_parts(update.artifact.parts))
-            elif not got_artifact_update and getattr(update, "status", None) and getattr(update.status, "message", None):
+                artifact_parts.extend(_extract_parts(update.artifact.parts))
+            elif getattr(update, "status", None) and getattr(update.status, "message", None):
                 msg_obj = update.status.message
                 if getattr(msg_obj, "parts", None):
-                    extracted = _extract_parts(msg_obj.parts)
-                    if extracted:
-                        parts.extend(extracted)
+                    status_parts = _extract_parts(msg_obj.parts)
 
-        # Non-streaming fallback: pull parts from the final task's artifacts or history.
-        if not parts and last_task is not None:
+        # Prefer artifact parts (A2UI surfaces or produced artifacts) if present;
+        # otherwise use the latest status message parts
+        if artifact_parts:
+            parts = artifact_parts
+        elif status_parts:
+            parts = status_parts
+        elif last_task is not None:
+            # Non-streaming fallback: pull parts from the final task's artifacts or history.
             for artifact in getattr(last_task, "artifacts", None) or []:
                 parts.extend(_extract_parts(artifact.parts))
             if not parts:

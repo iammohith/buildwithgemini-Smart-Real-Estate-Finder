@@ -15,6 +15,7 @@ Based directly on the implementation in `app/agent.py` and `agents-cli-manifest.
 ### 1. Curated Property Search & Management (Cloud Firestore)
 - **Catalog Search (`search_properties`)**: Queries Firestore for properties filtered by city, price range, bedrooms, bathrooms, property type (Single Family, Condo, Townhouse), and pet-friendliness.
 - **Detailed Property Breakdown (`get_property_details`)**: Retrieves complete listing information including square footage, HOA fees, year built, amenities, heating/cooling, and parking specs.
+- **Amenities & Features (`get_property_amenities`)**: Retrieves a targeted list of appliances, luxury features, and fixtures for a specific listing ID.
 - **Listing Ingestion (`add_property_listing`)**: Dynamically adds or updates property listings in Firestore with custom metadata.
 - **Tour Scheduling (`schedule_property_tour`)**: Books private showings and walkthrough appointments with buyer contact info, storing reservations in Firestore.
 
@@ -36,11 +37,12 @@ Based directly on the implementation in `app/agent.py` and `agents-cli-manifest.
 - **Address Geocoding (`geocode_address`)**: Resolves human-readable addresses to exact geographic coordinates using Google Maps Geocoding API.
 - **Environmental & Air Quality (`get_neighborhood_air_quality`)**: Queries Google Maps Air Quality API for real-time Air Quality Index (AQI) readings, dominant pollutants, and health recommendations.
 - **Local Weather Conditions (`get_weather`)**: Fetches current temperature and weather conditions via Open-Meteo.
+- **Local Time (`get_current_time`)**: Resolves current local time and time zone for any city.
 
 ### 6. Agent-Driven UI (A2UI)
 - **Basic Catalog (v0.8)**: Implements `A2uiSchemaManager` with the Basic Catalog (`Card`, `Column`, `Row`, `Text`, and `Image` components).
 - **Rich Display Formatting**: Returns structured visual cards containing property highlights, pricing, specs, and generated rendering imagery instead of plain text blocks.
-- **Response Validation**: Uses `a2ui_callback` to ensure A2UI component payloads adhere to specification.
+- **Response Validation**: Uses `a2ui_callback` to ensure A2UI component payloads adhere to specification and provides synchronized text summaries.
 
 ### 7. Custom Web Frontend (FastAPI & A2A Protocol)
 - **A2A Client**: Minimal FastAPI backend in `frontend/` acting as an authenticated proxy to the deployed Agent Engine over the Agent-to-Agent (A2A) protocol.
@@ -52,7 +54,7 @@ Based directly on the implementation in `app/agent.py` and `agents-cli-manifest.
 
 | Component | Technology | Role |
 | :--- | :--- | :--- |
-| **Agent Core** | Google ADK + `gemini-2.5-flash` | Reasoning loop and tool orchestration |
+| **Agent Core** | Google ADK + `gemini-3.8-flash` | Reasoning loop and tool orchestration |
 | **Long-Term Memory** | Vertex AI Memory Bank | Cross-session preference retention |
 | **Database** | Google Cloud Firestore | Listings catalog (`properties`) & tours (`tours`) |
 | **Code Sandbox** | Agent Engine Sandbox Code Executor | Safe Python execution for financial math |
@@ -64,7 +66,7 @@ Based directly on the implementation in `app/agent.py` and `agents-cli-manifest.
 | **Web Frontend** | FastAPI + Cloud Run | A2A proxy and chat UI |
 
 ### Feature Status & Implementation Notes
-- **Implemented & Wired**: Firestore, Vertex AI Memory Bank, Cloud Storage media upload, `gemini-3.1-flash-lite-image`, `gemini-omni-flash-preview`, Agent Engine Code Sandbox, Google Maps Places / Geocode / Air Quality APIs, A2UI v0.8, FastAPI A2A frontend.
+- **Implemented & Wired**: Firestore, Vertex AI Memory Bank, Cloud Storage media upload, `gemini-3.1-flash-lite-image`, `gemini-omni-flash-preview`, Agent Engine Code Sandbox, Google Maps Places / Geocode / Air Quality APIs, A2UI v0.8, FastAPI A2A frontend, full unit and integration test suite (20 tests passing).
 - **Planned / Not Yet Implemented**: OpenTelemetry custom distributed tracing exporter for Cloud Trace.
 
 ---

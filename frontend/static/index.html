@@ -569,8 +569,7 @@ function formatMarkdown(text) {
   safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   safe = safe.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
-  const lines = safe.split("
-");
+  const lines = safe.split("\n");
   let inList = false;
   let html = "";
   for (let i = 0; i < lines.length; i++) {
@@ -660,7 +659,7 @@ function buildNode(id, comps, seen) {
       if (!/^https?:\/\//i.test(src)) return null;
       const img = el("img", "a2img");
       img.src = src;
-      img.alt = boundStr(props.alt) || "";
+      img.alt = boundStr(props.altText || props.alt) || "Property Image";
       return img;
     }
     case "Icon": {
@@ -685,14 +684,14 @@ function renderSurface(messages, container) {
       }
     }
   }
-  let rootIds = roots.filter(r => comps[r]);
+  let rootIds = [...new Set(roots.filter(r => comps[r]))];
   if (rootIds.length === 0) {
     const referenced = new Set();
     for (const id in comps) {
       const spec = comps[id];
       childIds(spec[Object.keys(spec)[0]] || {}).forEach(c => referenced.add(c));
     }
-    rootIds = Object.keys(comps).filter(id => !referenced.has(id));
+    rootIds = [...new Set(Object.keys(comps).filter(id => !referenced.has(id)))];
   }
   let drew = false;
   for (const rid of rootIds) {
@@ -720,7 +719,16 @@ function renderReply(b, parts) {
   const texts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
   const a2ui = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
 
-  const textStr = texts.join("\n").trim();
+  // Deduplicate identical or consecutive text bubbles
+  const uniqueTexts = [];
+  for (const t of texts) {
+    const trimmed = t.trim();
+    if (trimmed && !uniqueTexts.includes(trimmed)) {
+      uniqueTexts.push(trimmed);
+    }
+  }
+
+  const textStr = uniqueTexts.join("\n\n").trim();
   if (textStr) {
     const textNode = el("div", null);
     textNode.innerHTML = formatMarkdown(textStr);

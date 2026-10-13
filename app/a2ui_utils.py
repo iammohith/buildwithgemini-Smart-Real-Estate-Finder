@@ -217,6 +217,23 @@ def _surface_is_renderable(messages: list[dict]) -> bool:
     return True
 
 
+def _extract_text_summary(messages: list[dict]) -> str:
+    """Extract readable text lines from A2UI components to provide text fallback/summary."""
+    texts: list[str] = []
+    for m in messages:
+        su = m.get("surfaceUpdate") or {}
+        for c in su.get("components") or []:
+            if not isinstance(c, dict):
+                continue
+            comp = c.get("component") or {}
+            txt = comp.get("Text") or {}
+            text_obj = txt.get("text") or {}
+            val = text_obj.get("literalString") if isinstance(text_obj, dict) else None
+            if isinstance(val, str) and val.strip() and val.strip() not in texts:
+                texts.append(val.strip())
+    return "\n".join(texts)
+
+
 def a2ui_callback(
     callback_context: CallbackContext,
     llm_response: LlmResponse,
@@ -250,10 +267,16 @@ def a2ui_callback(
                 )
             )
 
-        new_parts = [_wrap_a2ui_part(m) for m in messages]
+        new_parts = []
+        summary = _extract_text_summary(messages)
+        if summary:
+            new_parts.append(types.Part(text=summary))
+        new_parts.extend([_wrap_a2ui_part(m) for m in messages])
+
         return LlmResponse(
             content=types.Content(role="model", parts=new_parts),
             custom_metadata={"a2a:response": "true"},
         )
 
     return None
+
