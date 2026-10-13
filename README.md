@@ -290,7 +290,7 @@ A senior systems review prioritizes rationale over syntax. Below is the decision
    uv run python seed_firestore.py
    ```
 
-5. **Run the Test Suite (Verify 26/26 Tests Pass):**
+5. **Run the Test Suite (Verify 27/27 Tests Pass):**
    ```bash
    uv run pytest tests/ -v
    ```
@@ -336,7 +336,9 @@ A senior systems review prioritizes rationale over syntax. Below is the decision
 │   ├── fast_api_app.py                     # ADK local development server entrypoint
 │   └── app_utils/                          # Runtime utilities
 │       ├── __init__.py                     # Module initialization
-│       └── reasoning_engine_adapter.py     # Vertex AI Reasoning Engine streaming adapter
+│       ├── a2a.py                          # A2A client helper utilities
+│       ├── reasoning_engine_adapter.py     # Vertex AI Reasoning Engine streaming adapter
+│       └── services.py                     # Agent runtime services
 ├── docs/                                   # Documentation and recorded demo media
 │   └── demo/                               # Demo walkthrough assets
 │       ├── demo.gif                        # Animated visual preview for GitHub
@@ -347,10 +349,10 @@ A senior systems review prioritizes rationale over syntax. Below is the decision
 │   ├── main.py                             # FastAPI A2A proxy with CORS, /reset & context fallback
 │   ├── requirements.txt                    # Minimal runtime dependencies for Cloud Run
 │   └── static/                             # Frontend client assets
-│       ├── index.html                      # Single-page chat interface, session manager & A2UI renderer
-│       └── style.css                       # Real estate styled design system & animations
-└── tests/                                  # Comprehensive automated test suite (26/26 tests passing)
+│       └── index.html                      # Single-page chat interface, session manager & A2UI renderer
+└── tests/                                  # Comprehensive automated test suite (27/27 tests passing)
     ├── eval/                               # Quality evaluation scripts
+    │   ├── eval_config.yaml                # Evaluation parameters
     │   └── response_quality.py             # LLM-as-a-judge response grading using Gemini 3.8 Flash
     ├── integration/                        # Integration test cases
     │   ├── test_agent.py                   # Reasoning Engine streaming integration test
@@ -358,7 +360,7 @@ A senior systems review prioritizes rationale over syntax. Below is the decision
     └── unit/                               # Unit test cases
         ├── test_dummy.py                   # Baseline environment verification test
         ├── test_tools.py                   # 14 unit tests covering all tools, math & A2UI parsing
-        └── test_agentic_capabilities.py    # 6 unit tests for CORS, reset, input bounds & cognitive ReAct
+        └── test_agentic_capabilities.py    # 7 unit tests for CORS, reset, input bounds & cognitive ReAct
 ```
 
 ---
