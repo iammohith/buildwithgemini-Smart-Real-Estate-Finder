@@ -25,6 +25,7 @@ Run:
 """
 
 import datetime
+import json
 import logging
 import os
 import time
@@ -216,6 +217,12 @@ def _extract_parts(parts: list) -> list[dict]:
             uri = getattr(getattr(root, "file", None), "uri", None)
             if uri:
                 out.append({"kind": "text", "text": uri})
+
+    # When A2UI components are present, drop the synthesized fallback text summary
+    # so the frontend renders only the clean A2UI card without duplicating the text.
+    if any(p.get("kind") == "a2ui" for p in out):
+        out = [p for p in out if p.get("kind") == "a2ui"]
+
     return out
 
 
@@ -289,7 +296,7 @@ async def chat(req: Request):
                 elif getattr(u, "status", None) and getattr(u.status, "message", None):
                     msg_obj = u.status.message
                     if getattr(msg_obj, "parts", None):
-                        stat_parts.extend(_extract_parts(msg_obj.parts))
+                        stat_parts = _extract_parts(msg_obj.parts)
             return art_parts, stat_parts, lt
 
         try:
@@ -302,14 +309,12 @@ async def chat(req: Request):
                 del _contexts[user_id]
             artifact_parts, status_parts, last_task = await _send_and_collect(None)
 
-        # Collect text parts first, followed by A2UI card parts, avoiding duplicates
-        for sp in status_parts:
-            if sp not in parts:
-                parts.append(sp)
+        # If A2UI artifact parts exist, they are the primary visual response.
+        # Fallback to status parts only when no artifact was produced.
         if artifact_parts:
-            for ap in artifact_parts:
-                if ap not in parts:
-                    parts.append(ap)
+            parts.extend(artifact_parts)
+        elif status_parts:
+            parts.extend(status_parts)
 
         # Non-streaming fallback: pull parts from the final task's artifacts or history if still empty
         if not parts and last_task is not None:
