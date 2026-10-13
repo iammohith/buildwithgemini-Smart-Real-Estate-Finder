@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Real Estate Finder</title>
+<!-- Material Symbols for icons -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #0f766e;
+    --accent-dark: #115e59;
+    --accent-light: #f0fdfa;
+    --accent-subtle: #ccfbf1;
+    --accent-border: #99f6e4;
+    --accent-gradient: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+    --bg: #f8fafc;
+    --surface: #ffffff;
+    --surface-muted: #f1f5f9;
+    --border: #e2e8f0;
+    --border-hover: #cbd5e1;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-subtle: #94a3b8;
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --shadow-sm: 0 1px 3px rgba(15,23,42,0.06);
+    --shadow-md: 0 4px 8px -2px rgba(15,23,42,0.06), 0 2px 4px -2px rgba(15,23,42,0.04);
+    --shadow-lg: 0 12px 20px -4px rgba(15,23,42,0.08), 0 4px 8px -2px rgba(15,23,42,0.04);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* Header */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow-sm);
+    z-index: 10;
+  }
+  .header-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .header-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(15, 118, 110, 0.3);
+  }
+  .header-icon .material-symbols-outlined { font-size: 1.45rem; }
+  .header-titles {
+    display: flex;
+    flex-direction: column;
+  }
+  .app-title {
+    font-size: 1.12rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.01em;
+  }
+  .app-subtitle {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--accent-light);
+    color: var(--accent-dark);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.65rem;
+    border-radius: 20px;
+    border: 1px solid var(--accent-border);
+  }
+  .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+  }
+  .btn-reset {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 8px;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-reset:hover {
+    background: var(--surface-muted);
+    color: var(--text-main);
+    border-color: var(--border-hover);
+  }
+  .btn-reset .material-symbols-outlined { font-size: 1rem; }
+
+  /* Chat Log / Dialogue Layout */
+  #log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem 1rem;
+    max-width: 860px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    scroll-behavior: smooth;
+  }
+
+  /* Welcome Banner */
+  .welcome-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+  }
+  .welcome-icon {
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+  }
+  .welcome-banner h2 {
+    margin: 0 0 0.4rem 0;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-main);
+  }
+  .welcome-banner p {
+    margin: 0 auto 1.2rem auto;
+    max-width: 580px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  .quick-highlights {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .highlight-item {
+    background: var(--accent-light);
+    border: 1px solid var(--accent-subtle);
+    color: var(--accent-dark);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  /* Dialogue Message Rows */
+  .msg-row {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    animation: fadeIn 0.2s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .msg-row.user {
+    justify-content: flex-end;
+  }
+  .msg-row.agent {
+    justify-content: flex-start;
+  }
+
+  .avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--accent-light);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid var(--accent-border);
+    margin-top: 2px;
+  }
+  .avatar .material-symbols-outlined { font-size: 1.2rem; }
+
+  .msg-content {
+    display: flex;
+    flex-direction: column;
+    max-width: 82%;
+  }
+
+  .bubble {
+    padding: 0.85rem 1.15rem;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    word-break: break-word;
+  }
+
+  .msg-row.user .bubble {
+    background: var(--accent-gradient);
+    color: #ffffff;
+    border-radius: 18px 18px 4px 18px;
+    box-shadow: 0 3px 8px rgba(15, 118, 110, 0.25);
+  }
+
+  .msg-row.agent .bubble {
+    background: var(--surface);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 18px 18px 18px 4px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* When the reply contains rich cards */
+  .bubble.rich {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    max-width: 100%;
+  }
+
+  /* Markdown formatted text styles */
+  .md-p { margin: 0 0 0.5rem 0; }
+  .md-p:last-child { margin-bottom: 0; }
+  .md-list { margin: 0.4rem 0 0.6rem 1.2rem; padding: 0; }
+  .md-list li { margin-bottom: 0.3rem; }
+  .md-h1, .md-h2, .md-h3 { font-weight: 700; margin: 0.6rem 0 0.3rem 0; color: var(--text-main); }
+  .md-h1 { font-size: 1.25rem; }
+  .md-h2 { font-size: 1.1rem; }
+  .md-h3 { font-size: 1rem; }
+
+  /* Typing animation dots */
+  .typing-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0.4rem 0.6rem;
+  }
+  .typing-indicator span {
+    width: 6px;
+    height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: typing 1.2s infinite ease-in-out both;
+  }
+  .typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
+  .typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
+  @keyframes typing {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Bottom Controls: Prompt Suggestions + Form */
+  .bottom-bar {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 0.85rem 1.25rem 1.15rem 1.25rem;
+    box-shadow: 0 -4px 10px rgba(0,0,0,0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    max-width: 860px;
+    width: 100%;
+    margin: 0 auto;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+
+  /* Clickable example prompts row */
+  .suggestions-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.2rem;
+    scrollbar-width: none;
+  }
+  .suggestions-container::-webkit-scrollbar { display: none; }
+
+  .suggestions-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .chip {
+    background: var(--surface-muted);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 0.38rem 0.85rem;
+    font-size: 0.82rem;
+    font-family: inherit;
+    font-weight: 500;
+    color: var(--text-main);
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+  }
+  .chip:hover {
+    background: var(--accent-light);
+    border-color: var(--accent-border);
+    color: var(--accent-dark);
+    transform: translateY(-1px);
+  }
+  .chip:active {
+    transform: translateY(0);
+  }
+  .chip-icon { font-size: 0.95rem; }
+
+  /* Input Form */
+  form {
+    display: flex;
+    gap: 0.6rem;
+    position: relative;
+  }
+  input {
+    flex: 1;
+    padding: 0.85rem 1.15rem;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    font-size: 0.95rem;
+    font-family: inherit;
+    background: var(--bg);
+    color: var(--text-main);
+    outline: none;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+  input:focus {
+    border-color: var(--accent);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+  }
+  input::placeholder {
+    color: var(--text-subtle);
+  }
+  button[type="submit"] {
+    width: 46px;
+    height: 46px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+    flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(15, 118, 110, 0.3);
+  }
+  button[type="submit"]:hover {
+    transform: scale(1.04);
+    box-shadow: 0 4px 12px rgba(15, 118, 110, 0.4);
+  }
+  button[type="submit"]:active {
+    transform: scale(0.97);
+  }
+  button[type="submit"] .material-symbols-outlined {
+    font-size: 1.3rem;
+    font-weight: 600;
+  }
+
+  /* --- A2UI component styles (Card, Column, Row, Text, Divider, List, Image, Icon) --- */
+  .a2card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem;
+    background: var(--surface);
+    box-shadow: var(--shadow-md);
+    max-width: 100%;
+    margin: 0.4rem 0;
+    border-left: 4px solid var(--accent);
+  }
+  .a2card + .a2card, .a2col > .a2card { margin-top: 0.65rem; }
+  .a2col { display: flex; flex-direction: column; gap: 0.45rem; }
+  .a2row { display: flex; flex-direction: row; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
+  .a2row.between { justify-content: space-between; }
+  .a2text { margin: 0; line-height: 1.45; }
+  .a2text.a2-h1 { font-size: 1.4rem; font-weight: 700; color: var(--text-main); letter-spacing: -0.01em; }
+  .a2text.a2-h2 { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
+  .a2text.a2-h3 { font-size: 1.05rem; font-weight: 600; color: var(--accent-dark); }
+  .a2text.a2-h4 { font-size: 0.95rem; font-weight: 600; color: var(--text-main); }
+  .a2text.a2-caption { font-size: 0.85rem; color: var(--text-muted); }
+  .a2divider { border: none; border-top: 1px solid var(--border); margin: 0.6rem 0; width: 100%; }
+  .a2img {
+    max-width: 100%;
+    border-radius: 10px;
+    display: block;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    margin: 0.4rem 0;
+    object-fit: cover;
+  }
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-size: 1.25rem;
+    line-height: 1;
+    vertical-align: middle;
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-brand">
+    <div class="header-icon">
+      <span class="material-symbols-outlined">real_estate_agent</span>
+    </div>
+    <div class="header-titles">
+      <div class="app-title">Smart Real Estate Finder</div>
+      <div class="app-subtitle">AI Property, Mortgage & Neighborhood Advisor</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <span class="status-badge"><span class="status-dot"></span> Online</span>
+    <button type="button" class="btn-reset" id="reset-btn" title="Start new session">
+      <span class="material-symbols-outlined">restart_alt</span>
+      <span class="btn-text">Reset</span>
+    </button>
+  </div>
+</header>
+
+<div id="log">
+  <div id="welcome-banner" class="welcome-banner">
+    <div class="welcome-icon">🏡</div>
+    <h2>Welcome to Smart Real Estate Finder</h2>
+    <p>Your intelligent real estate partner. Ask me to discover listings, run mortgage and loan calculations, explore neighborhood points of interest, or visualize room redesigns.</p>
+    <div class="quick-highlights">
+      <div class="highlight-item"><span class="highlight-emoji">🔍</span> Curated Listings & POIs</div>
+      <div class="highlight-item"><span class="highlight-emoji">📈</span> Mortgage & Loan Math</div>
+      <div class="highlight-item"><span class="highlight-emoji">🎨</span> Interior Staging & Redesign</div>
+    </div>
+  </div>
+</div>
+
+<div class="bottom-bar">
+  <!-- Clickable tailored example prompts -->
+  <div class="suggestions-container">
+    <span class="suggestions-label">Suggestions:</span>
+    <button type="button" class="chip" data-prompt="Find a 3-bedroom home in Austin under $650k near parks and schools">
+      <span class="chip-icon">🏡</span>
+      <span>Austin homes under $650k</span>
+    </button>
+    <button type="button" class="chip" data-prompt="Calculate monthly mortgage for a $500,000 house with 20% down at 6.5% interest for 30 years">
+      <span class="chip-icon">📊</span>
+      <span>Estimate $500k mortgage</span>
+    </button>
+    <button type="button" class="chip" data-prompt="Visualize a modern Scandinavian interior redesign for a living room">
+      <span class="chip-icon">🎨</span>
+      <span>Living room redesign</span>
+    </button>
+  </div>
+
+  <form id="form">
+    <input id="input" placeholder="Search homes, calculate mortgage, explore neighborhoods…" autocomplete="off" autofocus>
+    <button type="submit" id="send-btn" title="Send message">
+      <span class="material-symbols-outlined">arrow_upward</span>
+    </button>
+  </form>
+</div>
+
+<script>
+const log = document.getElementById("log");
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const resetBtn = document.getElementById("reset-btn");
+const welcomeBanner = document.getElementById("welcome-banner");
+
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function bubble(who) {
+  if (welcomeBanner && welcomeBanner.parentNode) {
+    welcomeBanner.remove();
+  }
+  const row = el("div", "msg-row " + who);
+  if (who === "agent") {
+    const avatar = el("div", "avatar");
+    const icon = el("span", "material-symbols-outlined", "real_estate_agent");
+    avatar.appendChild(icon);
+    row.appendChild(avatar);
+  }
+  const wrapper = el("div", "msg-content");
+  const b = el("div", "bubble");
+  wrapper.appendChild(b);
+  row.appendChild(wrapper);
+  log.appendChild(row);
+  log.scrollTop = log.scrollHeight;
+  return b;
+}
+
+function showTypingIndicator() {
+  const b = bubble("agent");
+  const indicator = el("div", "typing-indicator");
+  indicator.appendChild(el("span"));
+  indicator.appendChild(el("span"));
+  indicator.appendChild(el("span"));
+  b.appendChild(indicator);
+  return b;
+}
+
+// Basic markdown formatter to render bold, italics, headers, and bullet lists cleanly
+function formatMarkdown(text) {
+  let safe = text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  safe = safe.replace(/^### (.*$)/gim, '<div class="md-h3">$1</div>');
+  safe = safe.replace(/^## (.*$)/gim, '<div class="md-h2">$1</div>');
+  safe = safe.replace(/^# (.*$)/gim, '<div class="md-h1">$1</div>');
+  safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  safe = safe.replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+  const lines = safe.split("
+");
+  let inList = false;
+  let html = "";
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (/^[\*\-]\s+(.*)/.test(line)) {
+      if (!inList) { html += '<ul class="md-list">'; inList = true; }
+      html += '<li>' + line.replace(/^[\*\-]\s+/, "") + '</li>';
+    } else {
+      if (inList) { html += '</ul>'; inList = false; }
+      if (line.length > 0) {
+        html += '<p class="md-p">';
+        html += line;
+        html += '</p>';
+      }
+    }
+  }
+  if (inList) html += '</ul>';
+  return html;
+}
+
+/* ----------------------------------------------------------------------------
+ * A2UI mini-renderer (v0.8 Basic Catalog subset).
+ * Renders Card / Column / Row / Text / Divider / List / Image / Icon.
+ * -------------------------------------------------------------------------- */
+function boundStr(v) {
+  if (v == null) return "";
+  if (typeof v === "string") return v;
+  if (typeof v.literalString === "string") return v.literalString;
+  return "";
+}
+
+function childIds(props) {
+  const ids = [];
+  if (props && typeof props.child === "string") ids.push(props.child);
+  const ch = props && props.children;
+  if (ch && Array.isArray(ch.explicitList)) {
+    for (const c of ch.explicitList) {
+      if (typeof c === "string") ids.push(c);
+    }
+  }
+  return ids;
+}
+
+function iconName(n) {
+  return String(n || "").replace(/([a-z0-9])([A-Z])/g, "$1_$2").replace(/\s+/g, "_").toLowerCase();
+}
+
+function buildNode(id, comps, seen) {
+  if (!id || seen.has(id)) return null;
+  seen.add(id);
+  const spec = comps[id];
+  if (!spec || typeof spec !== "object") return null;
+  const type = Object.keys(spec)[0];
+  const props = spec[type] || {};
+  const kids = () => childIds(props).map(cid => buildNode(cid, comps, seen)).filter(Boolean);
+
+  switch (type) {
+    case "Card": {
+      const d = el("div", "a2card");
+      kids().forEach(n => d.appendChild(n));
+      return d;
+    }
+    case "Column":
+    case "List": {
+      const horizontal = type === "List" && props.direction === "horizontal";
+      const d = el("div", horizontal ? "a2row" : "a2col");
+      kids().forEach(n => d.appendChild(n));
+      return d;
+    }
+    case "Row": {
+      const d = el("div", "a2row" + (props.distribution === "spaceBetween" ? " between" : ""));
+      kids().forEach(n => d.appendChild(n));
+      return d;
+    }
+    case "Text": {
+      const t = el("div", "a2text");
+      const hint = String(props.usageHint || "body").toLowerCase();
+      if (["h1", "h2", "h3", "h4", "h5", "h6"].includes(hint)) t.classList.add("a2-" + hint);
+      else if (hint === "caption") t.classList.add("a2-caption");
+      t.textContent = boundStr(props.text);
+      return t;
+    }
+    case "Divider":
+      return el("hr", "a2divider");
+    case "Image": {
+      const src = boundStr(props.url || props.src);
+      if (!/^https?:\/\//i.test(src)) return null;
+      const img = el("img", "a2img");
+      img.src = src;
+      img.alt = boundStr(props.alt) || "";
+      return img;
+    }
+    case "Icon": {
+      const s = el("span", "material-symbols-outlined");
+      s.textContent = iconName(boundStr(props.name) || props.name);
+      return s;
+    }
+    default:
+      return null;
+  }
+}
+
+function renderSurface(messages, container) {
+  const comps = {};
+  const roots = [];
+  for (const m of messages) {
+    if (m.beginRendering && typeof m.beginRendering.root === "string") roots.push(m.beginRendering.root);
+    const su = m.surfaceUpdate;
+    if (su && Array.isArray(su.components)) {
+      for (const c of su.components) {
+        if (c && c.id && c.component) comps[c.id] = c.component;
+      }
+    }
+  }
+  let rootIds = roots.filter(r => comps[r]);
+  if (rootIds.length === 0) {
+    const referenced = new Set();
+    for (const id in comps) {
+      const spec = comps[id];
+      childIds(spec[Object.keys(spec)[0]] || {}).forEach(c => referenced.add(c));
+    }
+    rootIds = Object.keys(comps).filter(id => !referenced.has(id));
+  }
+  let drew = false;
+  for (const rid of rootIds) {
+    const node = buildNode(rid, comps, new Set());
+    if (node) { container.appendChild(node); drew = true; }
+  }
+  return drew;
+}
+
+function flattenText(messages) {
+  const out = [];
+  for (const m of messages) {
+    const su = m.surfaceUpdate;
+    if (su && Array.isArray(su.components)) {
+      for (const c of su.components) {
+        if (c && c.component && c.component.Text) out.push(boundStr(c.component.Text.text));
+      }
+    }
+  }
+  return out.join("\n").trim();
+}
+
+function renderReply(b, parts) {
+  b.textContent = "";
+  const texts = parts.filter(p => p && (p.kind === "text" || (!p.kind && p.text))).map(p => p.text || "");
+  const a2ui = parts.filter(p => p && p.kind === "a2ui" && p.data).map(p => p.data);
+
+  const textStr = texts.join("\n").trim();
+  if (textStr) {
+    const textNode = el("div", null);
+    textNode.innerHTML = formatMarkdown(textStr);
+    b.appendChild(textNode);
+  }
+
+  if (a2ui.length) {
+    b.classList.add("rich");
+    if (!renderSurface(a2ui, b)) {
+      b.appendChild(el("div", null, flattenText(a2ui) || "(no card content)"));
+    }
+  }
+  if (!b.childNodes.length) b.textContent = "(no response)";
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sendQuery(text) {
+  if (!text) return;
+  bubble("user").textContent = text;
+  input.value = "";
+  const b = showTypingIndicator();
+  try {
+    const res = await fetch("/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text })
+    });
+    const raw = await res.text();
+    let data;
+    try { data = JSON.parse(raw); }
+    catch { throw new Error(`Server returned non-JSON (HTTP ${res.status}). ${raw.slice(0, 300)}`); }
+    renderReply(b, data.parts || []);
+  } catch (e) {
+    b.textContent = "Error: " + e.message;
+  }
+}
+
+// Submit via form
+form.addEventListener("submit", (ev) => {
+  ev.preventDefault();
+  const text = input.value.trim();
+  sendQuery(text);
+});
+
+// Clickable example prompt chips
+document.querySelectorAll(".chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    const prompt = chip.getAttribute("data-prompt");
+    if (prompt) {
+      sendQuery(prompt);
+    }
+  });
+});
+
+// Reset conversation
+resetBtn.addEventListener("click", () => {
+  log.innerHTML = `
+    <div id="welcome-banner" class="welcome-banner">
+      <div class="welcome-icon">🏡</div>
+      <h2>Welcome to Smart Real Estate Finder</h2>
+      <p>Your intelligent real estate partner. Ask me to discover listings, run mortgage and loan calculations, explore neighborhood points of interest, or visualize room redesigns.</p>
+      <div class="quick-highlights">
+        <div class="highlight-item"><span class="highlight-emoji">🔍</span> Curated Listings & POIs</div>
+        <div class="highlight-item"><span class="highlight-emoji">📈</span> Mortgage & Loan Math</div>
+        <div class="highlight-item"><span class="highlight-emoji">🎨</span> Interior Staging & Redesign</div>
+      </div>
+    </div>
+  `;
+});
+</script>
+</body>
+</html>
