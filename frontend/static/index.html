@@ -23,8 +23,8 @@
     --border: #e2e8f0;
     --border-hover: #cbd5e1;
     --text-main: #0f172a;
-    --text-muted: #64748b;
-    --text-subtle: #94a3b8;
+    --text-muted: #475569;
+    --text-subtle: #64748b;
     --radius-sm: 8px;
     --radius-md: 14px;
     --radius-lg: 20px;
@@ -43,6 +43,20 @@
     flex-direction: column;
     height: 100vh;
     overflow: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 
   /* Header */
@@ -72,7 +86,7 @@
     color: #ffffff;
     box-shadow: 0 2px 6px rgba(15, 118, 110, 0.3);
   }
-  .header-icon .material-symbols-outlined { font-size: 1.45rem; }
+  .header-icon .material-symbols-outlined { font-size: 1.45rem; color: #ffffff; }
   .header-titles {
     display: flex;
     flex-direction: column;
@@ -101,7 +115,7 @@
     color: var(--accent-dark);
     font-size: 0.75rem;
     font-weight: 600;
-    padding: 0.3rem 0.65rem;
+    padding: 0.35rem 0.75rem;
     border-radius: 20px;
     border: 1px solid var(--accent-border);
     transition: all 0.2s ease;
@@ -159,13 +173,13 @@
     gap: 0.3rem;
     cursor: pointer;
     transition: all 0.15s ease;
-    height: 42px;
+    height: 44px;
   }
   .btn-abort:hover {
     background: #fecaca;
   }
   .btn-retry {
-    margin-top: 0.5rem;
+    margin-top: 0.65rem;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -173,11 +187,12 @@
     color: #ffffff;
     border: none;
     border-radius: 6px;
-    padding: 0.3rem 0.65rem;
-    font-size: 0.78rem;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
     transition: background 0.15s;
+    min-height: 36px;
   }
   .btn-retry:hover {
     background: var(--accent-dark);
@@ -187,13 +202,14 @@
     border: 1px solid var(--border);
     color: var(--text-muted);
     border-radius: 8px;
-    padding: 0.35rem 0.65rem;
+    padding: 0.4rem 0.75rem;
     font-size: 0.8rem;
     font-weight: 600;
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
     cursor: pointer;
+    min-height: 38px;
     transition: all 0.15s ease;
   }
   .btn-reset:hover {
@@ -201,7 +217,7 @@
     color: var(--text-main);
     border-color: var(--border-hover);
   }
-  .btn-reset .material-symbols-outlined { font-size: 1rem; }
+  .btn-reset .material-symbols-outlined { font-size: 1rem; color: var(--text-muted); }
 
   /* Chat Log / Dialogue Layout */
   #log {
@@ -283,8 +299,8 @@
   }
 
   .avatar {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     background: var(--accent-light);
     color: var(--accent);
@@ -295,16 +311,16 @@
     border: 1px solid var(--accent-border);
     margin-top: 2px;
   }
-  .avatar .material-symbols-outlined { font-size: 1.2rem; }
+  .avatar .material-symbols-outlined { font-size: 1.25rem; }
 
   .msg-content {
     display: flex;
     flex-direction: column;
-    max-width: 82%;
+    max-width: 84%;
   }
 
   .bubble {
-    padding: 0.85rem 1.15rem;
+    padding: 0.95rem 1.2rem;
     border-radius: 16px;
     font-size: 0.95rem;
     line-height: 1.55;
@@ -326,24 +342,73 @@
     box-shadow: var(--shadow-sm);
   }
 
-  /* When the reply contains rich cards */
-  .bubble.rich {
-    background: transparent;
-    border: none;
-    box-shadow: none;
-    padding: 0;
-    max-width: 100%;
+  .agent-text-content {
+    line-height: 1.55;
   }
 
   /* Markdown formatted text styles */
-  .md-p { margin: 0 0 0.5rem 0; }
+  .md-p { margin: 0 0 0.55rem 0; }
   .md-p:last-child { margin-bottom: 0; }
-  .md-list { margin: 0.4rem 0 0.6rem 1.2rem; padding: 0; }
+  .md-list { margin: 0.4rem 0 0.6rem 1.25rem; padding: 0; }
   .md-list li { margin-bottom: 0.3rem; }
   .md-h1, .md-h2, .md-h3 { font-weight: 700; margin: 0.6rem 0 0.3rem 0; color: var(--text-main); }
   .md-h1 { font-size: 1.25rem; }
   .md-h2 { font-size: 1.1rem; }
   .md-h3 { font-size: 1rem; }
+
+  .md-code {
+    background: #0f172a;
+    color: #f1f5f9;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    overflow-x: auto;
+    margin: 0.65rem 0;
+  }
+  .md-code code { font-family: inherit; }
+  .md-inline-code {
+    background: var(--surface-muted);
+    color: var(--accent-dark);
+    padding: 0.15rem 0.35rem;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 0.86em;
+    border: 1px solid var(--border);
+  }
+  .md-table-wrap {
+    overflow-x: auto;
+    margin: 0.65rem 0;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .md-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    text-align: left;
+  }
+  .md-table th, .md-table td {
+    padding: 0.55rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .md-table th {
+    background: var(--surface-muted);
+    font-weight: 600;
+    color: var(--text-main);
+  }
+  .md-table tr:last-child td {
+    border-bottom: none;
+  }
+  .md-blockquote {
+    border-left: 3.5px solid var(--accent);
+    margin: 0.6rem 0;
+    padding: 0.45rem 0.85rem;
+    color: var(--text-muted);
+    background: var(--accent-light);
+    border-radius: 0 6px 6px 0;
+  }
 
   /* Typing animation dots */
   .typing-indicator {
@@ -405,7 +470,7 @@
     background: var(--surface-muted);
     border: 1px solid var(--border);
     border-radius: 20px;
-    padding: 0.38rem 0.85rem;
+    padding: 0.45rem 0.85rem;
     font-size: 0.82rem;
     font-family: inherit;
     font-weight: 500;
@@ -415,6 +480,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    min-height: 36px;
     transition: all 0.15s ease;
     flex-shrink: 0;
   }
@@ -445,6 +511,7 @@
     background: var(--bg);
     color: var(--text-main);
     outline: none;
+    min-height: 44px;
     transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
   }
   input:focus {
@@ -480,15 +547,19 @@
   button[type="submit"] .material-symbols-outlined {
     font-size: 1.3rem;
     font-weight: 600;
+    color: #ffffff;
   }
 
   /* --- A2UI component styles (Card, Column, Row, Text, Divider, List, Image, Icon) --- */
+  .a2ui-surface-wrapper {
+    width: 100%;
+  }
   .a2card {
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 1.2rem;
+    border-radius: 12px;
+    padding: 1.15rem;
     background: var(--surface);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-sm);
     max-width: 100%;
     margin: 0.4rem 0;
     border-left: 4px solid var(--accent);
@@ -520,6 +591,41 @@
     vertical-align: middle;
     color: var(--accent);
   }
+
+  /* Responsive Breakpoints */
+  @media (max-width: 640px) {
+    header {
+      padding: 0.65rem 0.85rem;
+    }
+    .app-title {
+      font-size: 1rem;
+    }
+    .app-subtitle {
+      font-size: 0.72rem;
+    }
+    .status-badge {
+      font-size: 0.7rem;
+      padding: 0.25rem 0.55rem;
+    }
+    .bottom-bar {
+      padding: 0.65rem 0.85rem;
+      border-radius: 0;
+    }
+    #log {
+      padding: 1rem 0.75rem;
+    }
+    .msg-content {
+      max-width: 90%;
+    }
+    .bubble {
+      padding: 0.75rem 0.95rem;
+      font-size: 0.9rem;
+    }
+    .chip {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.78rem;
+    }
+  }
 </style>
 </head>
 <body>
@@ -536,14 +642,14 @@
   </div>
   <div class="header-actions">
     <span class="status-badge" id="agent-status-badge"><span class="status-dot" id="status-dot"></span> <span id="status-text">Ready · Gemini 3.8 Flash</span></span>
-    <button type="button" class="btn-reset" id="reset-btn" title="Start new session">
+    <button type="button" class="btn-reset" id="reset-btn" title="Start new session" aria-label="Start new session">
       <span class="material-symbols-outlined">restart_alt</span>
       <span class="btn-text">Reset</span>
     </button>
   </div>
 </header>
 
-<div id="log">
+<div id="log" role="log" aria-live="polite" aria-label="Conversation history">
   <div id="welcome-banner" class="welcome-banner">
     <div class="welcome-icon">🏡</div>
     <h2>Welcome to Smart Real Estate Finder</h2>
@@ -560,27 +666,27 @@
   <!-- Clickable tailored example prompts -->
   <div class="suggestions-container">
     <span class="suggestions-label">Suggestions:</span>
-    <button type="button" class="chip" data-prompt="Find a 3-bedroom home in Austin under $650k near parks and schools">
+    <button type="button" class="chip" data-prompt="Find a 3-bedroom home in Austin under $650k near parks and schools" aria-label="Suggestion: Find 3-bedroom Austin homes under $650k">
       <span class="chip-icon">🏡</span>
       <span>Austin homes under $650k</span>
     </button>
-    <button type="button" class="chip" data-prompt="Calculate monthly mortgage for a $500,000 house with 20% down at 6.5% interest for 30 years">
+    <button type="button" class="chip" data-prompt="Calculate monthly mortgage for a $500,000 house with 20% down at 6.5% interest for 30 years" aria-label="Suggestion: Estimate $500k mortgage">
       <span class="chip-icon">📊</span>
       <span>Estimate $500k mortgage</span>
     </button>
-    <button type="button" class="chip" data-prompt="Visualize a modern Scandinavian interior redesign for a living room">
+    <button type="button" class="chip" data-prompt="Visualize a modern Scandinavian interior redesign for a living room" aria-label="Suggestion: Living room redesign">
       <span class="chip-icon">🎨</span>
       <span>Living room redesign</span>
     </button>
   </div>
 
   <form id="form">
-    <input id="input" placeholder="Search homes, calculate mortgage, explore neighborhoods…" autocomplete="off" autofocus>
-    <button type="button" id="abort-btn" class="btn-abort" title="Cancel running task">
+    <input id="input" placeholder="Search homes, calculate mortgage, explore neighborhoods…" autocomplete="off" autofocus aria-label="Ask about real estate listings, mortgage calculations, or neighborhoods">
+    <button type="button" id="abort-btn" class="btn-abort" title="Cancel running task" aria-label="Cancel running task">
       <span class="material-symbols-outlined">stop_circle</span>
       <span>Cancel</span>
     </button>
-    <button type="submit" id="send-btn" title="Send message">
+    <button type="submit" id="send-btn" title="Send message" aria-label="Send message">
       <span class="material-symbols-outlined">arrow_upward</span>
     </button>
   </form>
@@ -649,37 +755,95 @@ function showTypingIndicator() {
   return b;
 }
 
-// Basic markdown formatter to render bold, italics, headers, and bullet lists cleanly
+// Robust, safe markdown formatter with code blocks, tables, blockquotes, and lists
 function formatMarkdown(text) {
-  let safe = text
+  if (!text) return "";
+  const codeBlocks = [];
+  // 1. Stash and escape fenced code blocks
+  let safe = text.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, (match, lang, code) => {
+    const placeholder = `__CODE_BLOCK_${codeBlocks.length}__`;
+    const escapedCode = code
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    codeBlocks.push(`<pre class="md-code"><code class="language-${lang || 'text'}">${escapedCode}</code></pre>`);
+    return placeholder;
+  });
+
+  // 2. Base HTML escaping for text outside fenced blocks
+  safe = safe
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 
+  // 3. Inline code
+  safe = safe.replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>');
+
+  // 4. Headers
   safe = safe.replace(/^### (.*$)/gim, '<div class="md-h3">$1</div>');
   safe = safe.replace(/^## (.*$)/gim, '<div class="md-h2">$1</div>');
   safe = safe.replace(/^# (.*$)/gim, '<div class="md-h1">$1</div>');
-  safe = safe.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  safe = safe.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
+  // 5. Bold & Italics
+  safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  safe = safe.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+  // 6. Blockquotes
+  safe = safe.replace(/^>\s+(.*$)/gim, '<blockquote class="md-blockquote">$1</blockquote>');
+
+  // 7. Markdown Tables
+  safe = safe.replace(/((?:\|[^\n]+\|\n?){2,})/g, (tableMatch) => {
+    const rows = tableMatch.trim().split("\n").filter(r => r.includes("|"));
+    if (rows.length < 2) return tableMatch;
+    let tableHtml = '<div class="md-table-wrap"><table class="md-table">';
+    rows.forEach((row, idx) => {
+      if (row.replace(/[\s|:-]/g, "") === "") return;
+      const cells = row.split("|").slice(1, -1).map(c => c.trim());
+      if (idx === 0) {
+        tableHtml += '<thead><tr>' + cells.map(c => `<th>${c}</th>`).join("") + '</tr></thead><tbody>';
+      } else {
+        tableHtml += '<tr>' + cells.map(c => `<td>${c}</td>`).join("") + '</tr>';
+      }
+    });
+    tableHtml += '</tbody></table></div>';
+    return tableHtml;
+  });
+
+  // 8. Ordered and Unordered Lists & Paragraphs
   const lines = safe.split("\n");
-  let inList = false;
+  let inUl = false;
+  let inOl = false;
   let html = "";
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
     if (/^[\*\-]\s+(.*)/.test(line)) {
-      if (!inList) { html += '<ul class="md-list">'; inList = true; }
+      if (inOl) { html += '</ol>'; inOl = false; }
+      if (!inUl) { html += '<ul class="md-list">'; inUl = true; }
       html += '<li>' + line.replace(/^[\*\-]\s+/, "") + '</li>';
+    } else if (/^\d+\.\s+(.*)/.test(line)) {
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (!inOl) { html += '<ol class="md-list md-ol">'; inOl = true; }
+      html += '<li>' + line.replace(/^\d+\.\s+/, "") + '</li>';
     } else {
-      if (inList) { html += '</ul>'; inList = false; }
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (inOl) { html += '</ol>'; inOl = false; }
       if (line.length > 0) {
-        html += '<p class="md-p">';
-        html += line;
-        html += '</p>';
+        if (line.startsWith("<div") || line.startsWith("<blockquote") || line.startsWith("<pre") || line.startsWith("<table") || line.startsWith("<div class=\"md-table-wrap\"") || line.startsWith("__CODE_BLOCK_")) {
+          html += line;
+        } else {
+          html += '<p class="md-p">' + line + '</p>';
+        }
       }
     }
   }
-  if (inList) html += '</ul>';
+  if (inUl) html += '</ul>';
+  if (inOl) html += '</ol>';
+
+  // Restore preserved code blocks
+  for (let j = 0; j < codeBlocks.length; j++) {
+    html = html.replace(`__CODE_BLOCK_${j}__`, codeBlocks[j]);
+  }
+
   return html;
 }
 
@@ -831,30 +995,28 @@ function renderReply(b, parts, metadata) {
   }
 
   const textStr = uniqueTexts.join("\n\n").trim();
-  if (textStr) {
-    const textNode = el("div", null);
-    textNode.innerHTML = formatMarkdown(textStr);
-    b.appendChild(textNode);
-  }
-
   let hasContent = false;
   if (textStr) {
-    const textNode = el("div", null);
+    const textNode = el("div", "agent-text-content");
     textNode.innerHTML = formatMarkdown(textStr);
     b.appendChild(textNode);
     hasContent = true;
   }
 
   if (a2ui.length) {
-    b.classList.add("rich");
-    if (!renderSurface(a2ui, b)) {
+    const surfaceWrapper = el("div", "a2ui-surface-wrapper");
+    if (textStr) surfaceWrapper.style.marginTop = "0.75rem";
+    if (renderSurface(a2ui, surfaceWrapper)) {
+      b.appendChild(surfaceWrapper);
+      hasContent = true;
+    } else {
       const fallback = flattenText(a2ui);
       if (fallback) {
-        b.appendChild(el("div", null, fallback));
+        const fallbackNode = el("div", "agent-text-content", fallback);
+        if (textStr) fallbackNode.style.marginTop = "0.75rem";
+        b.appendChild(fallbackNode);
         hasContent = true;
       }
-    } else {
-      hasContent = true;
     }
   }
 

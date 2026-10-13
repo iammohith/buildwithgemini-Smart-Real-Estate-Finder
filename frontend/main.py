@@ -303,8 +303,9 @@ async def chat(req: Request):
             artifact_parts, status_parts, last_task = await _send_and_collect(None)
 
         # Collect text parts first, followed by A2UI card parts, avoiding duplicates
-        if status_parts:
-            parts.extend(status_parts)
+        for sp in status_parts:
+            if sp not in parts:
+                parts.append(sp)
         if artifact_parts:
             for ap in artifact_parts:
                 if ap not in parts:

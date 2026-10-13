@@ -135,3 +135,13 @@ def test_frontend_cors_and_reset():
     assert res_reset.status_code == 200
     assert res_reset.json().get("status") == "ok"
 
+
+def test_frontend_root_index():
+    """Verify the root endpoint serves the updated HTML with proper no-cache headers."""
+    client = TestClient(frontend_app)
+    res_root = client.get("/")
+    assert res_root.status_code == 200
+    assert "Smart Real Estate Finder" in res_root.text
+    assert "formatMarkdown" in res_root.text
+    assert "no-cache" in res_root.headers.get("Cache-Control", "")
+
